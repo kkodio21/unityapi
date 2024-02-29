@@ -1,0 +1,65 @@
+using UnityEngine;
+using UnityEngine.Networking;
+using System.Collections; // Added this line
+
+public class APIDataFetcher : MonoBehaviour
+{
+    private string apiURL = "https://www.randomnumberapi.com/api/v1.0/random?min=1&max=10&count=5";
+    public GameObject ballPrefab; // ボールのプレハブ
+    public float spawnInterval = 3000f; // ボールのスポーン間隔（秒）
+
+    void Start()
+    {
+        // Call FetchData function every 'spawnInterval' seconds, starting after 'spawnInterval' seconds
+        InvokeRepeating("FetchData", spawnInterval, spawnInterval);
+    }
+
+    void FetchData()
+    {
+        StartCoroutine(GetDataFromAPI());
+    }
+
+
+    IEnumerator GetDataFromAPI()
+    {
+
+            // Create a UnityWebRequest object to send GET request to the API
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(apiURL))
+            {
+                // Send the request and wait for a response
+                yield return webRequest.SendWebRequest();
+                string A=(string)webRequest.downloadHandler.text;
+                int digit=A[1] - '0';
+                if (webRequest.result != UnityWebRequest.Result.Success)
+                {
+                    Debug.LogError("Error: " + webRequest.error);
+                }
+                else
+                {
+                    // If request is successful, display the response data in the console
+                    //Debug.Log("API Response: " + A);
+
+                    Debug.Log("API response:" + digit.ToString());
+                    //string B = A.Trim('[', ']').Split(',');
+                    //Debug.Log("kousuke" + B);
+                    //Debug.Log("Test/////////// " + string.Join(", ", list));
+
+                    // You can further process the response data here
+                    // For example, you can parse JSON data using JSONUtility or other libraries
+                }
+                if (digit >= 4)
+                {
+                    SpawnBall();
+                    Debug.Log("ボールを追加");
+                }
+            }
+
+    }
+    void SpawnBall()
+    {
+        // ボールを生成してスポーン
+        GameObject ball = Instantiate(ballPrefab, transform.position, Quaternion.identity);
+        ball.GetComponent<Rigidbody>().velocity = new Vector3(0f, ball.GetComponent<Ball>().speed, 0f);
+    }
+
+}
